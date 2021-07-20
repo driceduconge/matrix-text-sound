@@ -1,6 +1,4 @@
 import ddf.minim.Minim
-import ddf.minim.ugens.Oscil
-import ddf.minim.ugens.Waves
 import org.openrndr.*
 import org.openrndr.color.rgb
 import org.openrndr.draw.loadFont
@@ -9,7 +7,7 @@ import java.io.FileInputStream
 import java.io.InputStream
 import kotlin.math.pow
 import kotlin.math.sqrt
-import Oscillator
+
 
 var oneSelected = false
 var cellEcted = 0
@@ -68,6 +66,8 @@ class Section(col:Int, line:Int, cell:Int){
     }
 }
 
+//fun playRythm()
+
 fun main() = application {
 
     configure {
@@ -89,11 +89,14 @@ fun main() = application {
             }
 
         })
-
+        var psc = Oscillator(mouse.position.x.toFloat(),0.5f,1)
+        var out = minim.lineOut
+/*
         var out = minim.lineOut
         var wave = Oscil(440.0f, 0.5f, Waves.SINE)
-        wave.patch(out)
-        //var aaaa = Oscillator()
+        wave.patch(out)*/
+
+
         val font = loadFont("data/fonts/RuneScape-Surok.ttf",20.0)
         var a = 0
         //créer chaque beat
@@ -110,6 +113,7 @@ fun main() = application {
         mouse.buttonDown.listen{
             click1 = it.position.x
             click2 = it.position.y
+
         }
         var cellNum = 0
 
@@ -131,7 +135,14 @@ fun main() = application {
                 array[cellNum].letter = ' '
             }
         }
+        var newfreq = 0.0f
+        var newfreq2 = 0.0f
 
+        mouse.moved.listen{
+            newfreq = mouse.position.x.toFloat()
+            newfreq2 = mouse.position.y.toFloat()
+
+        }
         keyboard.character.listen {
             if(oneSelected){
                 if (it.character.toInt() == 32 || it.character.toInt() in 65..90 || it.character.toInt() in 97..122) {
@@ -150,8 +161,11 @@ fun main() = application {
             }
         }
 
+
         extend {
 
+           psc.wave.setFrequency(newfreq)
+            psc.wave.patch(out)
             var color = rgb(0.0)
             drawer.clear(color)
             //drawer.stroke = rgb(255.0)
