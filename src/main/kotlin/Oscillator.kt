@@ -12,10 +12,10 @@ var minim: Minim? = null
 var out: AudioOutput? = null
 //var wave: Oscil? = null
 //var re: Oscil? = null
-class Oscillator(freq:Float,amp:Float,waveForm:Int) {
-    var waveName = SINE
-    var re = Oscil(10.0f,2.0f,SINE)
-    var wave = Oscil(freq, amp, waveName)
+class Oscillator(freq:Float,amp:Float,waveForm:Wavetable,lfoFre: Float,lfoAmp: Float) {
+    var re = Oscil(lfoFre,lfoAmp,SINE)
+    var adsr = ADSR(1.0f,0.1f,0.4f,0.5f,0.3f)
+    var wave = Oscil(freq, amp, waveForm)
 
     init {
         val minim = Minim(object : kotlin.Any() {
@@ -27,28 +27,18 @@ class Oscillator(freq:Float,amp:Float,waveForm:Int) {
                 return FileInputStream(File(fileName))
             }
         })
-        if(waveForm==0){
-            waveName = SINE
-        }
-        else if(waveForm==1){
-            waveName = TRIANGLE
-        }
-        else if(waveForm==2){
-            waveName = SAW
-        }
-        else if(waveForm==3){
-            waveName = SQUARE
-        }
-        wave.setWaveform(waveName)
         re.offset.setLastValue(200.0f)
         re.patch(wave)
+        wave.patch(adsr)
 
     }
 
     fun updateWave(lfoFre:Float,lfoAmp:Float,fre:Float,form:Wavetable){
         re.setAmplitude(lfoAmp)
         re.setFrequency(lfoFre)
+        //re.patch(wave)
         wave.setFrequency(fre)
-        wave.setWaveform(form)
+        wave.waveform = form
+        //println(lfoFre.toString()+" + "+fre.toString()+" + "+lfoAmp.toString()+" + "+form.toString())
     }
 }
