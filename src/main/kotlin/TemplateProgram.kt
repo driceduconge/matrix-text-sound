@@ -1,4 +1,6 @@
 import ddf.minim.Minim
+import ddf.minim.ugens.Frequency
+import ddf.minim.ugens.Waves
 import ddf.minim.ugens.Waves.*
 import org.openrndr.*
 import org.openrndr.color.rgb
@@ -13,6 +15,7 @@ import kotlin.math.sqrt
 var oneSelected = false
 var cellEcted = 0
 var array = mutableListOf<Section>()
+val notes = listOf<String>("C1","D1","E1","F1","G1","A2","B2","C2","D2","E2","F2","G2","A3","B3","C3","D3","E3","F3","G3","A4","B4","C4","D4","E4","F4","G4","A5","B5","C5","D5","E5","F5","G5",)
 //function map copied from https://stackoverflow.com/questions/17134839/how-does-the-map-function-in-processing-work
 fun map(value: Float, istart: Float, istop: Float, ostart: Float, ostop: Float):Float {
     return ostart + (ostop - ostart) * ((value - istart) / (istop - istart))
@@ -74,12 +77,12 @@ class Section(col:Int, line:Int, cell:Int){
             }
         }
     }
-    fun playLetter(cellNum:Int): Float {
+    fun playLetter(cellNum:Int):Int {
         playing = cellNum==cell
         if(letter != '=' && letter != '-'){
-            return map(this.letter.code.toFloat(),65.0f,90.0f,123.0f,587.0f)
+            return map(this.letter.code.toFloat(),65.0f,90.0f,0.0f,27.0f).toInt()
         }
-        else{return 0.0f}
+        else{return 0}
     }
 }
 fun stopped(times:Int):Boolean{
@@ -179,8 +182,8 @@ fun main() = application {
 
         }
         var selectLFO = 0
-        var ampLFO1 = 40.0f
-        var freLFO1 = 100.0f
+        var ampLFO1 = 2.0f
+        var freLFO1 = 10.0f
         var wavef = SINE
         var celln = 0
 
@@ -252,7 +255,7 @@ fun main() = application {
                 drawer.fill = rgb(0.0,1.0,0.0)
                 drawer.text("tri",450.0,110.0)
                 if(clicked){
-                    wavef = TRIANGLE
+                    wavef = Waves.triangleh(4)
                 }
             }
             else if(mouseCollision(450.0,120.0,30.0,20.0,posx,posy)){
@@ -262,7 +265,7 @@ fun main() = application {
                 drawer.fill = rgb(0.0,1.0,0.0)
                 drawer.text("squ",450.0,130.0)
                 if(clicked){
-                    wavef = SQUARE
+                    wavef = Waves.squareh(8)
                 }
             }
             else if(mouseCollision(450.0,140.0,30.0,20.0,posx,posy)){
@@ -272,7 +275,7 @@ fun main() = application {
                 drawer.fill = rgb(0.0,1.0,0.0)
                 drawer.text("saw",450.0,150.0)
                 if(clicked){
-                    wavef = SAW
+                    wavef = Waves.sawh(8)
                     println("SAW")
                 }
             }
@@ -304,10 +307,10 @@ fun main() = application {
             }
             if(selectLFO == 1){
                 if(up){
-                    ampLFO1 += 20.0f
+                    ampLFO1 += 10.0f
                 }
                 else if(down){
-                    ampLFO1 -= 20.0f
+                    ampLFO1 -= 10.0f
                 }
                 drawer.text("FRE",450.0,230.0)
                 drawer.text(freLFO1.toString(),490.0,230.0)
@@ -318,10 +321,10 @@ fun main() = application {
             }
             else if(selectLFO == 2){
                 if(up){
-                    freLFO1 += 20.0f
+                    freLFO1 += 4.0f
                 }
                 else if(down){
-                    freLFO1 -= 20.0f
+                    freLFO1 -= 4.0f
                 }
                 drawer.text("AMP",450.0,210.0)
                 drawer.text(ampLFO1.toString(),490.0,210.0)
@@ -360,18 +363,23 @@ fun main() = application {
             if(space==1){
                 println(frequencyeah)
                 psc.adsr.patch(out)
-                if(frameCount%30.0==0.0) {
+               // psc.adsrp.patch(out)
+                if(frameCount%20.0==0.0) {
                     psc.adsr.noteOff()
+                 //   psc.adsrp.noteOff()
                     println(frequencyeah)
                     psc.adsr.noteOff()
+                   // psc.adsrp.noteOff()
                     var argg = array[celln].playLetter(array[celln].cell)
-                    if (argg != 0.0f) {
-                        frequencyeah = argg
+                    if (argg != null) {
+                        frequencyeah = Frequency.ofPitch(notes[argg]).asHz()
                         psc.updateWave(ampLFO1,freLFO1,frequencyeah,wavef)
                         psc.adsr.noteOn()
+                    //    psc.adsrp.noteOn()
                     }
                     celln+=1
                 }
+                psc.updateWave(ampLFO1,freLFO1,frequencyeah,wavef)
 
 
             }
